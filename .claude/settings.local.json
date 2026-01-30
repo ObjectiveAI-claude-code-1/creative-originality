@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run init:*)",
+      "Bash(npm run build:*)",
+      "Bash(git init:*)",
+      "Bash(git submodule add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: creative-originality function\n\nA vector function that ranks creative works by originality.\nDiscovers which pieces are most novel, surprising, and free of clichés.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

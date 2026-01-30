@@ -1,0 +1,58 @@
+{
+  "type": "vector.function",
+  "description": "Rank creative works by originality. Discover which pieces are most novel, surprising, and free of clichés.",
+  "changelog": null,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "works": {
+        "type": "array",
+        "description": "Creative works to be ranked by originality.",
+        "minItems": 2,
+        "items": {
+          "type": "string",
+          "description": "A creative work (story, idea, poem, pitch, etc.)"
+        }
+      }
+    },
+    "required": [
+      "works"
+    ]
+  },
+  "input_maps": {
+    "$jmespath": "to_array(input.works)"
+  },
+  "tasks": [
+    {
+      "type": "vector.completion",
+      "skip": null,
+      "map": 0,
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "$jmespath": "join('', ['Rate the originality of the following creative work:\\n\\n\"', map, '\"'])"
+          }
+        }
+      ],
+      "tools": null,
+      "responses": [
+        "Highly Original - Novel concepts, surprising elements, unique perspective",
+        "Moderately Original - Some fresh ideas mixed with familiar elements",
+        "Not Very Original - Relies on clichés and predictable patterns"
+      ]
+    }
+  ],
+  "output": {
+    "$jmespath": "l1_normalize(tasks[0][*].add(scores[0], multiply(scores[1], `0.5`)))"
+  },
+  "output_length": {
+    "$jmespath": "length(input.works)"
+  },
+  "input_split": {
+    "$jmespath": "input.works[*].{works: [@]}"
+  },
+  "input_merge": {
+    "$jmespath": "{works: input[*].works[0]}"
+  }
+}
