@@ -1,73 +1,65 @@
-# ObjectiveAI Function Sandbox
+# creative-originality
 
-A sandbox environment for creating ObjectiveAI Functions and Profiles.
+An ObjectiveAI vector function that ranks creative works by originality.
 
-[GitHub](https://github.com/ObjectiveAI/objectiveai) | [Website](https://objective-ai.io) | [Discord](https://discord.gg/gbNFHensby)
+## What it does
 
-## What is this?
+Given multiple creative works (stories, ideas, poems, pitches, etc.), this function ranks them by originality - discovering which pieces are most novel, surprising, and free of clichés.
 
-This repository is a template workspace for inventing new ObjectiveAI **Functions** (scoring/ranking pipelines) and **Profiles** (learned weights).
-
-It includes a **Claude Code skill** (`~/.claude/skills/invent/SKILL.md`) that guides Claude through the entire process of inventing a new Function from scratch - from studying examples to validating the new Function/Profile pair to publishing on GitHub.
-
-The sandbox provides all the tooling needed to:
-
-- Define a Function and Profile in TypeScript
-- Validate against the ObjectiveAI schema
-- Test with example inputs
-- Export to `function.json` and `profile.json`
-- Publish to GitHub and the ObjectiveAI index
-
-## Quick Start
+## Usage
 
 ```bash
-npm install
-npm run init      # Fetch example functions/profiles
-npm run build     # Validate, test, and export
-npm run publish   # (Optional) Index on ObjectiveAI
+curl -X POST https://api.objective-ai.io/functions/ObjectiveAI-claude-code-1/creative-originality \
+  -H "Authorization: Bearer $OBJECTIVEAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": {
+      "works": [
+        "A detective who solves crimes by reading dreams",
+        "A murder mystery where the butler did it",
+        "A sentient traffic light with existential dread"
+      ]
+    }
+  }'
 ```
 
-## Project Structure
+## Input Schema
 
-```
-├── defs.ts           # Define your Function, Profile, and ExampleInputs here
-├── main.ts           # Scratchpad for experiments (npm run start)
-├── build.ts          # Exports Function/Profile to JSON (readonly)
-├── test.ts           # Validates and tests everything (readonly)
-├── init.ts           # Fetches example functions/profiles (readonly)
-├── publish.ts        # Publishes to ObjectiveAI index (readonly)
-├── example_input.ts  # ExampleInput type definition (readonly)
-├── function.json     # Generated Function output
-├── profile.json      # Generated Profile output
-├── examples/         # Downloaded example functions/profiles
-└── objectiveai/      # ObjectiveAI SDK (git submodule)
+```json
+{
+  "works": ["string", "string", ...]
+}
 ```
 
-## Workflow
+- `works` (required): Array of creative works to rank (minimum 2)
 
-1. **Study examples** - Run `npm run init` to download example functions/profiles, then explore `examples/`
-2. **Define your Function** - Edit `defs.ts` to create your Function with tasks and output expressions
-3. **Define your Profile** - Add a Profile that specifies ensembles and weights for each task
-4. **Create ExampleInputs** - Add 10 diverse test inputs covering edge cases
-5. **Build and test** - Run `npm run build` to validate and export
-6. **Publish** - Push to GitHub, optionally run `npm run publish` to index
+## Output
 
-## Scripts
+Returns a vector of scores that sum to ~1, representing the relative originality ranking:
 
-| Command | Description |
-|---------|-------------|
-| `npm run start` | Run the scratchpad (`main.ts`) for experiments |
-| `npm run init` | Fetch example functions/profiles into `examples/` |
-| `npm run build` | Validate, test, and export to JSON |
-| `npm run test` | Run validation tests only |
-| `npm run publish` | Publish to ObjectiveAI index (requires API key) |
+```json
+{
+  "output": [0.45, 0.15, 0.40]
+}
+```
 
-## Using with Claude Code
+Higher scores indicate more original works.
 
-This sandbox includes a skill for Claude Code. To have Claude invent a new Function:
+## How it works
 
-1. Open this workspace in Claude Code
-2. Ask Claude to invent a new function (the skill will guide the process)
-3. Claude will study examples, propose ideas, and implement the Function/Profile
+1. Each work is independently evaluated on a 3-level originality scale
+2. An ensemble of 8 diverse LLMs vote on each work's originality
+3. Votes are weighted and combined to produce relative rankings
+4. Output is normalized to sum to 1
 
-The skill supports both **collaborative** (back-and-forth) and **autonomous** modes.
+## Ensemble
+
+Uses a diverse mix of models for robust evaluation:
+- Fast models: gpt-4.1-nano, gemini-2.5-flash-lite
+- Reasoning: claude-haiku-4.5 (highest weight)
+- Probabilistic: deepseek-v3.2, gpt-4o-mini (with logprobs)
+- Diverse opinion: grok-4.1-fast
+
+## License
+
+MIT
